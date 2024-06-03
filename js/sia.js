@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
   async function processAllFiles(file) {
     document.getElementById('character-count').value = '';
     document.getElementById('textOutput').value = '';
+    document.getElementById('success').style.display = 'none';
+    document.getElementById('failure').style.display = 'none';
+    document.getElementById('warning').style.display = 'none';
+    document.getElementById('processingMessage').style.display = 'none';
+
     if (!file) {
         displayError('Unable to read file.');
         return;
@@ -50,21 +55,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const worker = await Tesseract.createWorker("eng");
     const originalHTML = processingMessage.innerHTML;
     var allText = '';
+    var fileCharacterCount = 0;
     if (file.type === 'application/pdf') {
       const { numPages, imageIterator } = await convertPDFToImages(file);
       let done = 0;
       processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Processing ${numPages} page${numPages > 1 ? 's' : ''}`;
       for await (const { imageURL } of imageIterator) {
-        const { text } = await ocrImage(worker, imageURL);
-        allText += text;
-        done += 1;
-        processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Completed ${done} of ${numPages}`;
+        result = checkCharacterCount(fileCharacterCount);
+        if (result == 'OK') {
+            const { text } = await ocrImage(worker, imageURL);
+            allText += text;
+            fileCharacterCount += text.length;
+            done += 1;
+            processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Completed ${done} of ${numPages}`;
+        }
       }
     } 
     await worker.terminate();
     processingMessage.innerHTML = originalHTML;
     processingMessage.style.display = 'none';
-    fileCharacterCount = allText.length;
     document.getElementById('textOutput').value = allText.trim();
     document.getElementById('character-count').value = fileCharacterCount;
     checkFileSize(file, fileCharacterCount);
@@ -219,24 +228,34 @@ function processTextFile(file) {
 }
 
 function checkFileSize(file, fileCharacterCount) {
+    result = checkCharacterCount(fileCharacterCount);
+    if (result == 'OK') {
+        displaySuccess(file);
+    }
+    else {
+        displayError(result);
+    }
+}
+
+function checkCharacterCount(fileCharacterCount) {
     var projectType = document.getElementById('project-type');
     if (projectType.value == 'long') {
         if (fileCharacterCount > 280000 ) {
-            displayError('The text in your file exceeded 280,000 characters, which is too long.');
+           return 'The text in your file exceeded 280,000 characters, which is too long.';
         }
         else if (fileCharacterCount < 18000 ) {
-            displayError('The text in your file is under 18,000 characters, which is too short.')
+            return 'The text in your file is under 18,000 characters, which is too short.';
         }
         else {
-                displaySuccess(file);
+            return 'OK';
         }
     }
     else {
         if (fileCharacterCount > 15000 ) {
-            displayError('The text in your file exceeded 15,000 characters, which is too long.');
+            return 'The text in your file exceeded 15,000 characters, which is too long.';
         }
         else {
-            displaySuccess(file);
+            return 'OK';
         }
     }
 }
