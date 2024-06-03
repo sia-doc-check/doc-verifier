@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function processPDFFile(file) {
-    processingMessage.style.display = 'block';
     const processingMessage = document.getElementById('processingMessage');
+    processingMessage.style.display = 'block';
     const worker = await Tesseract.createWorker("eng");
     const originalHTML = processingMessage.innerHTML;
     var allText = '';
