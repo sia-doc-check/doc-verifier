@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sia - Document Verifier</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script type="module">
+        import pdfjsDist from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/+esm';
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="js/sia.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/sia.css">
+</head>
+<body>
+<div class="container">
+    <h1>Sia - Document Verifier</h1>
+    <h3>Instructions</h3>
+    <p>Select your project type, then select the file you plan to upload. You will receive an error message if the document is too short or too long. Otherwise, you will receive a successful confirmation code.</p>
+    <form>
+    <label for="project-type">Project Type:</label>
+    <select id="project-type">
+            <option value="general">General</option>
+            <option value="long">Long Context</option>
+    </select>
+    <label for="fileInput">File: (*.txt, *.csv, *.py, *.json, *.pdf, *.docx, *.pptx, *.xlsx)</label>
+    <input type="file" accept=".pdf,.txt,.csv,.py,.json,.docx,.pptx,.xlsx" id="fileInput">
+    <br><br>
+    <div id="processingMessage"><i class="fa fa-spinner fa-spin"></i> Processing, please wait...</div>
+    <label for="character-count">Character Count:</label>
+    <input type="text" id="character-count" readonly/>
+    <label for="textOutput">Raw File Text:</label>
+    <textarea id="textOutput"></textarea>
+    <div id="failure" class="error-message"></div>
+    <div id="warning" class="warning-message"></div>
+    <div id="success" class="success-message">
+        <label for="codeOutput">Confirmation Code:</label>
+        <input type="text" id="codeOutput">
+        <button type="button" id="copyButton"  onclick="copyCode()">Copy</button>
+    </div>
+</form>
+</div>
+</body>
+</html>

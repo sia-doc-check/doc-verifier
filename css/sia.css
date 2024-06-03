@@ -1,0 +1,141 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+input[type="text"][readonly] {
+    background: transparent; /* Removes any background color */
+    border: none; /* Removes the border */
+    color: #333; /* Sets text color to match typical body text, adjust as needed */
+    font-family: inherit; /* Ensures the font matches the rest of your content */
+    font-size: inherit; /* Matches the font size of surrounding text */
+    padding: 0; /* Removes padding */
+    margin: 0; /* Ensures no extra space around the input */
+    width: auto; /* Width can be adjusted to content or container */
+}
+
+/* Optional: Underline or other indicator for read-only status */
+input[type="text"][readonly]:hover {
+    border-bottom: 1px dashed #ccc; /* Adds an underline on hover to indicate it's an input */
+    cursor: default; /* Changes cursor to default to avoid the text cursor */
+}
+
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #0056b3;
+}
+
+button, input[type="submit"], input[type="file"]::file-selector-button {
+    background: #0056b3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover, input[type="submit"]:hover, input[type="file"]::file-selector-button:hover {
+    background: #004494;
+}
+
+select {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; 
+    cursor: pointer;
+}
+
+select {
+    appearance: none; 
+    background-color: white;
+    width: 100%;
+    max-width: 200px;
+}
+
+h1, h2, h3, h4, b {
+    color: #0056b3;
+}
+
+
+#success, #failure, #processingMessage, #warning {
+    display: none;
+}
+
+.error-message::before {
+    content: "❌"; /* Emoji for the error message */
+    margin-right: 10px;
+}
+
+.error-message {
+    color: #ff0000; /* Bright red */
+    background-color: #ffe5e5; /* Light red */
+    border: 1px solid #ff0000;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.success-message::before {
+    content: "✅"; /* Emoji for the success message */
+    margin-right: 5px;
+}
+
+.success-message {
+    color: #008000; /* Dark green */
+    background-color: #e5ffe5; /* Light green */
+    border: 1px solid #008000;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.warning-message {
+    color: #cc8400; 
+    background-color: #fff4e0; 
+    border: 1px solid #cc8400;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    box-sizing: border-box;
+    position: relative; 
+}
+
+.warning-message::before {
+    content: "⚠️"; 
+    margin-right: 5px;
+}
