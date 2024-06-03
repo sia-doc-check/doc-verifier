@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         processAllFiles(file);
       });
     } else {
-      console.error('File input element not found.');
+      displayError('File input element not found.');
     }
   });
   
@@ -62,10 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
       processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Processing ${numPages} page${numPages > 1 ? 's' : ''}`;
       for await (const { imageURL } of imageIterator) {
         result = checkCharacterCount(fileCharacterCount);
-        if ( result != "OK" ) {
-            console.log("Breaking Loop");
-            break;
-        } 
+        if ( result != "OK" ) break;
         const { text } = await ocrImage(worker, imageURL);
         allText += text;
         fileCharacterCount += text.length;
@@ -73,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         done += 1;
         processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Completed ${done} of ${numPages}`;
       }
-      console.log("Exit Loop");
     }
     else{
         displayError("Invalid PDF File.")
