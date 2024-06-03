@@ -62,14 +62,21 @@ document.addEventListener('DOMContentLoaded', function() {
       processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Processing ${numPages} page${numPages > 1 ? 's' : ''}`;
       for await (const { imageURL } of imageIterator) {
         result = checkCharacterCount(fileCharacterCount);
-        if (result == 'OK') {
-            const { text } = await ocrImage(worker, imageURL);
-            allText += text;
-            fileCharacterCount += text.length;
-            done += 1;
-            processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Completed ${done} of ${numPages}`;
-        }
+        if ( result != "OK" ) {
+            console.log("Breaking Loop");
+            break;
+        } 
+        const { text } = await ocrImage(worker, imageURL);
+        allText += text;
+        fileCharacterCount += text.length;
+        document.getElementById('character-count').value = fileCharacterCount;
+        done += 1;
+        processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Completed ${done} of ${numPages}`;
       }
+      console.log("Exit Loop");
+    }
+    else{
+        displayError("Invalid PDF File.")
     } 
     await worker.terminate();
     processingMessage.innerHTML = originalHTML;
