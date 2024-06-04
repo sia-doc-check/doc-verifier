@@ -1,9 +1,44 @@
-async function calculateCode(file) {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-    const hashArray = Array.from(new Uint8Array(hashBuffer));  
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');  
-    return hashHex;
-}
+async function loadKey() {
+    try {
+      const response = await fetch('config/info');
+      const key = await response.text();
+      return key;
+    } catch (error) {
+      console.error('Error loading key:', error);
+      return "default";
+    }
+  }
+  
+  async function calculate(file, key, algorithm = 'SHA-256') {
+    try {
+      const keyData = new TextEncoder().encode(key);
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: { name: algorithm } },
+        false,
+        ['sign']
+      );
+  
+      const fileBuffer = await file.arrayBuffer();
+      const signature = await crypto.subtle.sign('HMAC', cryptoKey, fileBuffer);
+      const codeArray = Array.from(new Uint8Array(signature));
+      const codeHex = codeArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return codeHex;
+    } catch (error) {
+      displayError("Error generating confirmation code. Contact the Admins for help.");
+    }
+  }
+  
+  async function calculateCode(file) {
+    try {
+      const key = await loadKey();
+      const code = await calculate(file, key);
+      return code;
+    } catch (error) {
+        displayError("Error generating confirmation code. Contact the Admins for help.");
+    }
+  }
   
 document.addEventListener('DOMContentLoaded', function() {
     var fileInput = document.getElementById('fileInput');
@@ -61,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
       let done = 0;
       processingMessage.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Processing ${numPages} page${numPages > 1 ? 's' : ''}`;
       for await (const { imageURL } of imageIterator) {
-        result = checkCharacterCount(fileCharacterCount);
+        result = await checkCharacterCount(fileCharacterCount, 0);
         if ( result != "OK" ) break;
         const { text } = await ocrImage(worker, imageURL);
         allText += text;
@@ -128,7 +163,7 @@ function processDocx(file) {
         
         mammoth.extractRawText({arrayBuffer: arrayBuffer})
             .then(function(result) {
-                fileCharacterCount = result.value.length;
+                var fileCharacterCount = result.value.length;
                 document.getElementById('textOutput').value = result.value.trim();
                 document.getElementById('character-count').value = fileCharacterCount;
                 checkFileSize(file, fileCharacterCount);
@@ -170,7 +205,7 @@ function processPptxFile(file) {
             Promise.all(slideTextPromises).then(function(slidesText) {
                 slidesText = slidesText.join("\n\n");
                 document.getElementById('textOutput').value = slidesText.trim();
-                fileCharacterCount = slidesText.length;
+                var fileCharacterCount = slidesText.length;
                 document.getElementById('character-count').value = fileCharacterCount;
                 checkFileSize(file, fileCharacterCount);
             });
@@ -199,7 +234,7 @@ function processXlsxFile(file) {
         });
         
         document.getElementById('textOutput').value = outputText.trim();
-        fileCharacterCount = outputText.length;
+        var fileCharacterCount = outputText.length;
         document.getElementById('character-count').value = fileCharacterCount;
         checkFileSize(file, fileCharacterCount);
     };
@@ -218,7 +253,7 @@ function processTextFile(file) {
 
     reader.onload = function(event) {
         document.getElementById('textOutput').value = event.target.result.trim();
-        fileCharacterCount = event.target.result.length;
+        var fileCharacterCount = event.target.result.length;
         document.getElementById('character-count').value = fileCharacterCount;
         checkFileSize(file, fileCharacterCount);
     };
@@ -230,37 +265,43 @@ function processTextFile(file) {
     reader.readAsText(file);
 }
 
-function checkFileSize(file, fileCharacterCount) {
-    result = checkCharacterCount(fileCharacterCount);
-    if (result == 'OK') {
-        displaySuccess(file);
-    }
-    else {
-        displayError(result);
-    }
+async function checkCharacterCount(fileCharacterCount, checkMinimum) {
+    var projectType = document.getElementById('project-type').value;
+    return fetch('config/limits.json')
+        .then(response => response.json())
+        .then(data => {
+            const limits = data[projectType];
+            if (limits !== undefined) {
+                const { min = 0, max } = limits;
+                if ( fileCharacterCount > max) {
+                    return `The text in your file exceeded ${max} characters, which is too long.`;
+                } else if (checkMinimum && fileCharacterCount < min) {
+                    return `The text in your file is under ${min}, which is too short.`;
+                } else {
+                    return 'OK';
+                }
+            } else {
+                return "Unrecognized project type selected.";
+            }
+        })
+        .catch(error => {
+            return "Configuration Error: Unable to retrieve character limits. Please contact the Admins.";
+        });
 }
 
-function checkCharacterCount(fileCharacterCount) {
-    var projectType = document.getElementById('project-type');
-    if (projectType.value == 'long') {
-        if (fileCharacterCount > 280000 ) {
-           return 'The text in your file exceeded 280,000 characters, which is too long.';
-        }
-        else if (fileCharacterCount < 18000 ) {
-            return 'The text in your file is under 18,000 characters, which is too short.';
+function checkFileSize(file, fileCharacterCount) {
+    checkCharacterCount(fileCharacterCount, 1)
+    .then(result => {
+        if (result == 'OK') {
+            displaySuccess(file);
         }
         else {
-            return 'OK';
+            displayError(result);
         }
-    }
-    else {
-        if (fileCharacterCount > 15000 ) {
-            return 'The text in your file exceeded 15,000 characters, which is too long.';
-        }
-        else {
-            return 'OK';
-        }
-    }
+    })
+    .catch(error => {
+        displayError("An error happened checking the file character count. Contact the Admins for support.");
+    });    
 }
 
 function displaySuccess(file) {
